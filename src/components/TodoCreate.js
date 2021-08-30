@@ -2,14 +2,16 @@
 // TodoTemplate의 하단부에 초록색 원 버튼을 렌더링 해줌
 // 이를 클릭하면 할 일을 입력 할 수 있는 폼이 나타남
 // 버튼을 다시 누르면 폼이 사라짐
+
 import React, { useState } from "react";
 import styled, { css } from "styled-components";
 import { MdAdd } from "react-icons/md";
+import { useTodoDispatch, useTodoNextId } from "../TodoContext";
 
 const CircleButton = styled.button`
-  boackground: #38d9a9;
+  background: #38d9a9;
   &:hover {
-    boackground: #63e6be;
+    background: #63e6be;
   }
   &:active {
     background: #20c997;
@@ -19,7 +21,6 @@ const CircleButton = styled.button`
   cursor: pointer;
   width: 80px;
   height: 80px;
-  display: block;
   align-items: center;
   justify-content: center;
   font-size: 60px;
@@ -31,9 +32,6 @@ const CircleButton = styled.button`
   border-radius: 50%;
   border: none;
   outline: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
   transition: 0.125s all ease-in;
   ${(props) =>
@@ -81,19 +79,42 @@ const Input = styled.input`
 
 function TodoCreate() {
   const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  const dispatch = useTodoDispatch();
+  const nextId = useTodoNextId();
 
   const onToggle = () => setOpen(!open);
+  const onChange = (e) => setValue(e.target.value);
+  const onSubmit = (e) => {
+    e.preventDefault(); // 새로고침 방지
+    dispatch({
+      type: "CREATE",
+      todo: {
+        id: nextId.current,
+        text: value,
+        done: false,
+      },
+    });
+    setValue("");
+    setOpen(false);
+    nextId.current += 1;
+  };
 
   return (
     <>
       {open && (
         <InsertFormPositioner>
-          <InsertForm>
-            <Input autoFocus placeholder="할 일을 입력 후, Enter 를 누르세요" />
+          <InsertForm onSubmit={onSubmit}>
+            <Input
+              autoFocus
+              placeholder="할 일을 입력 후, Enter 를 누르세요"
+              onChange={onChange}
+              value={value}
+            />
           </InsertForm>
         </InsertFormPositioner>
       )}
-
       <CircleButton onClick={onToggle} open={open}>
         <MdAdd />
       </CircleButton>
@@ -101,4 +122,4 @@ function TodoCreate() {
   );
 }
 
-export default TodoCreate;
+export default React.memo(TodoCreate);
